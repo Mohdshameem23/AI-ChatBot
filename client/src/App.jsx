@@ -40,7 +40,7 @@ const App = () => {
   async function getData(query, lang) {
     try {
       const promptWithLang = lang === "hi-IN" ? "Respond in Hindi: " + query : query;
-      const response = await axios.post("http://localhost:3000/generate", { prompt: promptWithLang });
+      const response = await axios.post("https://ai-chat-bot-982v.vercel.app/", { prompt: promptWithLang });
 
       const cleanText = cleanResponse(response.data.output);
 
