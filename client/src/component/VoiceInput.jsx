@@ -1,42 +1,45 @@
 import { useState, useEffect } from "react";
 import { IoMicSharp, IoSendSharp } from "react-icons/io5";
 
-const VoiceInput = ({ value, onChange, onSend }) => {
+const VoiceInput = ({ value, onChange, onSend, selectedLanguage }) => {
   const [listening, setListening] = useState(false);
   const [recognition, setRecognition] = useState(null);
 
   useEffect(() => {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
-
     if (!SpeechRecognition) return;
 
     const recog = new SpeechRecognition();
-    recog.continuous = false; // stops automatically after speech
-    recog.interimResults = false; // only final results
-    recog.lang = "en-US";
+    recog.continuous = false;
+    recog.interimResults = false;
+    recog.lang = selectedLanguage;
 
     recog.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
       onChange(transcript);
+
+      // Auto-send voice input
+      setTimeout(() => {
+        onSend(transcript);
+      }, 300);
+
       setListening(false);
     };
 
     recog.onend = () => setListening(false);
-
     setRecognition(recog);
-  }, [onChange]);
+  }, [onChange, onSend, selectedLanguage]);
 
   const handleMicClick = () => {
-    if (!recognition)
-      return alert("Your browser does not support Speech Recognition");
+    if (!recognition) return alert("Your browser does not support Speech Recognition");
     setListening(true);
     recognition.start();
   };
 
-  const handleSend = () => {
+  const handleManualSend = () => {
     if (!value.trim()) return;
-    onSend();
+    onSend(value);
   };
 
   return (
@@ -46,10 +49,10 @@ const VoiceInput = ({ value, onChange, onSend }) => {
         placeholder="Ask me anything"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && handleSend()}
+        onKeyDown={(e) => e.key === "Enter" && handleManualSend()}
         className="w-full py-3 pl-6 pr-16 border border-gray-300 rounded-full text-gray-700 placeholder-gray-400 focus:outline-none focus:border-gray-500"
       />
-      {/* Microphone button */}
+      {/* Mic button */}
       <button
         onClick={handleMicClick}
         className={`absolute right-10 top-1/2 transform -translate-y-1/2 p-2 rounded-full cursor-pointer ${
@@ -60,7 +63,7 @@ const VoiceInput = ({ value, onChange, onSend }) => {
       </button>
       {/* Send button */}
       <button
-        onClick={handleSend}
+        onClick={handleManualSend}
         className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full text-gray-600 cursor-pointer hover:text-gray-800"
       >
         <IoSendSharp size={24} />
